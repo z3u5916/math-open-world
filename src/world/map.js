@@ -18,7 +18,7 @@ export class Map {
 		this.ground = []
 		this.blocks = []
 		this.perspective = []
-
+		this.src=""
 		this.world = {}
 		this.background = background
 		this.player_pos = {
@@ -37,6 +37,7 @@ export class Map {
 	 * @returns {Promise<Map>}
 	 */
 	static async create(game, src, tileset, background, player_pos) {
+		this.src=src
 		const map = new Map(game, tileset, background, player_pos)
 		await map.load(src)
 		//try {

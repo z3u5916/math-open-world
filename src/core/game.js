@@ -20,11 +20,13 @@ import { OptionsMenu } from '../ui/options.js'
 import { AudioManager } from './audioManager.js'
 import { Inventory } from '../ui/inventory.js'
 import { Consumable, Item, ItemStack} from '../ui/items.js'
-
+import { Parser } from '../save/parser.js'
+import { save, restore } from '../save/save.js'
 
 export class Game {
 	constructor() {
 		// setup canvas & context
+		// localStorage.clear()
 		/** @type {HTMLCanvasElement} */
 		this.canvas = document.getElementById('game')
 		this.canvas.width = window.innerWidth
@@ -39,7 +41,6 @@ export class Game {
 		this.next_hitbox_id = 0
 		this.next_attack_id = 0
 		this.next_entity_id = 0
-		
 		/**@type {Array} */
 		this.resizeables = []
 
@@ -57,7 +58,9 @@ export class Game {
 				resizeable.resize(resizeable)
 			})
 		})
-
+		window.addEventListener('unload', ()=>{
+			localStorage.setItem("game", save(this))
+		})
 		// prevent right-click (as it provokes bugs)
 		document.addEventListener('contextmenu', (event) => {
 			event.preventDefault()
@@ -153,18 +156,28 @@ export class Game {
 		this.current_map = "house" // "scene"
 		this.map = this.maps[this.current_map]
 
-		// test entities
-		new Spider(this, this.maps["map"], constants.TILE_SIZE * 2, constants.TILE_SIZE * 2)
-		new Frog(this, this.maps["map"], constants.TILE_SIZE * 12, constants.TILE_SIZE * 12, 0.5)
 
+		
+		
+		// new Frog(this, this.maps["map"], constants.TILE_SIZE * 12, constants.TILE_SIZE * 12, 0.5)
+		
 		await Tileset.create(this, 'Kanji.png', 16, constants.TILE_SIZE, 0)
 		
-    const inventory = await Inventory.create(this, "inventory.png")
+    	const inventory = await Inventory.create(this, "inventory.png")
 		this.player = new Player(this, this.tilesets["Kanji"], inventory)
-
+		if (localStorage.getItem('game') != null ){ 
+			restore(this)
+			this.player.map = this.map
+			this.player.combat_hitbox.map=this.map
+			this.player.collision_hitbox.map=this.map
+			this.player.raycast_hitbox.map = this.map
+		}
+		else{
 		this.player.set_map(this.get_current_map())
-		
+		new Spider(this, this.maps["new_map"], 104 * constants.TILE_SIZE,73 * constants.TILE_SIZE, 100)
+		}
 		// needed to place the player correctly
+		
 		this.update()
 
 		const colors_problem_finishing_ui = await Ui.create(this, "opened_book_ui.png", this.canvas.width * 0.6875, this.canvas.width * 0.453125, [
@@ -565,6 +578,9 @@ export class Game {
 	 * @returns 
 	 */
 	update(current_time) {
+		// console.log(this.player.worldX.get(), this.player.worldY.get())
+		// console.log(this.entities)
+		// console.log(this.spider.worldX.get(), this.spider.worldY.get())
 		this.collision_hitboxes = this.collision_hitboxes.filter(h => h.active)
 		this.combat_hitboxes = this.combat_hitboxes.filter(h => h.active)
 		this.hitboxes = this.hitboxes.filter(h => h.active)

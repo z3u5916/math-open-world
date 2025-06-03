@@ -17,6 +17,7 @@ export class Tileset {
         this.game = game
         this.tileset_spacing = tileset_spacing
         this.img = null // Initialize the image to null
+        this.src=""
     }
 
     /**
@@ -30,6 +31,7 @@ export class Tileset {
      * @throws {Error} - If the image fails to load
      */
     static async create(game, src, img_tile_size, screen_tile_size, tileset_spacing) {
+        this.src=src
         const tileset = new Tileset(game, img_tile_size, screen_tile_size, tileset_spacing)
         try {
             await tileset.load(config.IMG_DIR + src)
@@ -52,9 +54,11 @@ export class Tileset {
      * @throws {Error} - If the image fails to load
      */
     async load(src) {
+        this.src=src
         const img = new Image()
         img.src = src
         this.img = img
+
 
         await new Promise((resolve, reject) => {
             img.onload = resolve
